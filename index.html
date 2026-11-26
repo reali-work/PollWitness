@@ -802,6 +802,13 @@ svg[data-ety="tel"] .pt:not([data-ty~="tel"]),svg[data-ety="web"] .pt:not([data-
 .tip-near{display:block;margin-top:6px;padding-top:6px;border-top:1px dashed #ffffff33}
 @media print{.lgb{padding:0;margin:0}}
 </style>
+<script>
+const ESTRIP=1;
+/* 流量統計（Google Analytics 4）：只在正式網址載入，Claude 預覽與本機檔案不計 */
+window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
+window.GA_ON=/(^|\.)github\.io$|(^|\.)reali\.work$/.test(location.hostname);
+if(GA_ON){const g=document.createElement('script');g.async=true;g.src='https://www.googletagmanager.com/gtag/js?id=G-0BNVQRPZYX';document.head.appendChild(g);gtag('js',new Date());gtag('config','G-0BNVQRPZYX',{send_page_view:false});}
+</script>
 </head>
 <body>
 <header>
@@ -1225,7 +1232,6 @@ svg[data-ety="tel"] .pt:not([data-ty~="tel"]),svg[data-ety="web"] .pt:not([data-
 <div class="tip" id="tip"></div>
 
 <script>
-const ESTRIP=1;
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
 /* 展開區：高度與內容分開動 */
 function edToggle(row,on){if(!row)return;const td=row.firstElementChild;if(!td)return;
@@ -2024,7 +2030,7 @@ renderSources();
 /* ---------- 揭露聲明 ---------- */
 const DIS=[
  ['這裡不是民意調查','site',`<ul><li>本站沒有進行任何抽樣、電話訪問或網路問卷。頁面上每個百分比都引自已公開發布的民調，並附原始出處連結。</li><li>趨勢線是本站依公開民調計算的彙整結果，圖上標示「彙整趨勢」，引用時不得稱為「某某民調」。</li></ul>`],
- ['經營者與政治中立','site',`<ul><li>本站未受任何政黨、候選人、競選團隊或其代理人委託、贊助或資助。</li><li>所有收錄、排除、計算規則對各政黨與候選人對稱適用；同一套元件與配色呈現所有陣營。</li></ul>`],
+ ['經營者與政治中立','site',`<ul><li>本站使用 Google Analytics 統計瀏覽人數、熱門頁面與下載次數，用來了解哪些資料最多人看；不收集姓名、帳號或聯絡方式，也不記錄搜尋框輸入的文字。不想被統計，可以用瀏覽器的追蹤保護或阻擋擴充功能。</li><li>本站未受任何政黨、候選人、競選團隊或其代理人委託、贊助或資助。</li><li>所有收錄、排除、計算規則對各政黨與候選人對稱適用；同一套元件與配色呈現所有陣營。</li></ul>`],
  ['收錄標準','scope',`<ul><li>已公開發布，並找得到原始出處（民調單位發布、記者會資料或首發報導）。</li><li>至少載明調查單位與題目結果；其餘欄位（調查期間、方式、樣本數、誤差、委託方、經費）缺少者仍收錄，但逐項標示「未載明」，並計入揭露完整度。</li><li>同一份民調被多家媒體轉載時只算一筆，保留所有來源連結。</li></ul>`],
  ['分類與排除規則','scope',`<table class="stack"><thead><tr><th>類型</th><th>是否收錄</th><th>是否納入趨勢線</th></tr></thead><tbody>
   <tr><td>媒體、學術單位、智庫、協會自行出資的電話民調</td><td>收錄</td><td>納入</td></tr>
@@ -2600,12 +2606,15 @@ function pollTarget(id){
 let esub='polls';
 function setESub(v){esub=v==='audit'?'audit':'polls';const b=$('#ebody');if(b)b.dataset.sub=esub;document.querySelectorAll('[data-esub]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.esub===esub)));let has=false;try{has=Object.keys(RESULTS).length>0}catch(e){}const t=$('#esubt');if(t)t.hidden=has;const eb=$('#eaeb');if(eb)eb.textContent=has?'選後檢驗・已開票':'選後檢驗・開票後更新';if(esub==='audit'&&typeof renderAcc==='function')renderAcc()}
 document.addEventListener('click',e=>{const x=e.target.closest('[data-esub]');if(!x)return;setESub(x.dataset.esub);history.replaceState(null,'','#election/2026/'+esub)});
+let gaLast='';
+function gaView(path){if(!window.GA_ON)return;const p='/'+String(path).replace(/^p\/.*/,'p').replace(/^(ab-|disclosure-sum).*/,'about');if(p===gaLast)return;gaLast=p;gtag('event','page_view',{page_title:document.title+'｜'+p,page_location:location.origin+location.pathname+'#'+p.slice(1),page_path:location.pathname+p.slice(1)})}
 function route(){
  const raw=decodeURIComponent(location.hash.slice(1));let act=null,h=raw==='disclosure'?'about':raw;
  if(raw==='changelog'||/^(ab-|disclosure-sum$)/.test(raw)){h='about';act=()=>{const el=document.getElementById(raw);if(!el)return;const sec=el.closest('.abg');if(sec)showAb(sec.id);if(sec===el)showAb(sec.id,1);else el.scrollIntoView({block:'start'})}}
  if(raw.startsWith('p/')){const t=pollTarget(raw.slice(2));if(t){h=t[0];act=t[1]}else h='home'}
  if(raw==='election'||raw.startsWith('election/')){h='election';const seg=raw.split('/').slice(1);let ev=seg[0]||'hub';if(ev!=='hub'&&ev!=='2026'&&!E28[ev])ev='hub';if(ev==='2026'){const was=esub,s1=seg[1]||'';setESub(s1==='audit'?'audit':'polls');if(s1){const r=RACES.find(q=>q.id===s1);if(r){if(r!==race){race=r;emon='all';eorg=null;emOpen=null;eopen=new Set()}if(was==='audit')act=()=>{const st=document.querySelector('#ebody .estick');if(st)st.scrollIntoView({block:'start'})}}}}setEView(ev)}
  const v=VIEWS.includes(h)?h:'home';
+ gaView(raw||'home');
  const chg=curView&&curView!==v;if(chg)scrollTo(0,0);curView=v;
  document.querySelectorAll('section[data-view]').forEach(s=>s.classList.toggle('on',s.dataset.view===v));
  if(chg)fadeIn(document.querySelector('section[data-view="'+v+'"]'));
@@ -2698,7 +2707,7 @@ const XCSV={
 function xcount(){[['app','#atab'],['ps','#ptab'],['el','#etab']].forEach(([k,sel])=>{const b=document.querySelector(`[data-xcsv="${k}"] span`);if(b)b.innerHTML=`下載 CSV <span class="xn">（${xpids(sel).length} 筆）</span>`});const b=document.querySelector('[data-xcsv="pi"] span');if(b)b.innerHTML=`下載 CSV <span class="xn">（${(window._piRows||[]).length} 筆）</span>`;document.documentElement.classList.toggle('blk',inBlackout())}
 {let xq0=0;const mo=new MutationObserver(()=>{if(!xq0){xq0=1;requestAnimationFrame(()=>{xq0=0;xcount()})}});['#atab','#ptab','#etab','#pibox','#ebody'].forEach(s=>{const e=$(s);if(e)mo.observe(e,{childList:true,subtree:s!=='#ebody',attributes:s==='#ebody'})});xcount()}
 document.addEventListener('click',async e=>{const b=e.target.closest('[data-xpng],[data-xcsv]');if(!b||b.getAttribute('aria-busy')==='true')return;
- const k=b.dataset.xpng||b.dataset.xcsv;if(k==='el'&&inBlackout())return;
+ const k=b.dataset.xpng||b.dataset.xcsv;if(window.GA_ON)gtag('event',b.dataset.xpng?'download_png':'download_csv',{chart:k});if(k==='el'&&inBlackout())return;
  if(b.dataset.xcsv){const r=XCSV[k]();if(!r||!r[1].length)return;await xsave(new Blob([xcsv(r[0],r[1])],{type:'text/csv;charset=utf-8'}),`民意目擊者_${r[2]}_${xstamp()}.csv`);return}
  b.setAttribute('aria-busy','true');try{const [c,t,sub,name,leg,src]=XPNG[k]();await exportChartPNG(c,t,sub,`民意目擊者_${name}_${xstamp()}.png`,leg,src)}catch(err){console.error(err);const t=b.querySelector('span');if(t){const o=t.textContent;t.textContent='產生失敗，請再試一次';setTimeout(()=>t.textContent=o,2500)}}finally{b.removeAttribute('aria-busy')}});
 const nt=$('#notice');
